@@ -1,0 +1,5 @@
+selenium
+aiohttp
+pymongo
+fastapi
+uvicorn[standard]
