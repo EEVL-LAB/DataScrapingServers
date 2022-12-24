@@ -1,5 +1,6 @@
 selenium
 aiohttp
+requests
 pymongo
 fastapi
 uvicorn[standard]
