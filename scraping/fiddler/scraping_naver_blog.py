@@ -46,9 +46,7 @@ async def request_post_list(target_keyword: str=None) -> list:
 
 async def request_post_content(url: str):
     async with aiohttp.ClientSession() as session:
-        response = await session.get(
-            url=url
-        )
+        response = await session.get(url)
         response_string = await response.text()
         soup = bs(response_string, "html.parser")
         frame = soup.find('iframe', id='mainFrame')
