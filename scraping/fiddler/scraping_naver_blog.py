@@ -3,6 +3,7 @@ import asyncio
 import aiohttp
 from urllib import parse
 from utils import sanitize_html
+from bs4 import BeautifulSoup as bs
 
 
 async def request_post_list(target_keyword: str=None) -> list:
@@ -35,17 +36,41 @@ async def request_post_list(target_keyword: str=None) -> list:
                 'url': search_result.get('postUrl'),
                 'title': search_result.get('noTagTitle', sanitize_html(search_result.get('title'))),
                 'contents': sanitize_html(search_result.get('contents')),
-                'thumbnails': search_result.get('thumbnails')
+                'thumbnails': search_result.get('thumbnails'),
+                'content_plain_text': await request_post_content(search_result.get('postUrl'))
             }
         )
 
     return post_list
 
 
+async def request_post_content(url: str):
+    async with aiohttp.ClientSession() as session:
+        response = await session.get(
+            url=url
+        )
+        response_string = await response.text()
+        soup = bs(response_string, "html.parser")
+        frame = soup.find('iframe', id='mainFrame')
+        frame_addr = 'https://blog.naver.com/' + frame['src']
+
+    async with aiohttp.ClientSession() as session:
+        response = await session.get(frame_addr)
+        response_string = await response.text()
+        soup = bs(response_string, "lxml") 
+
+    if soup.find("div", attrs={"class":"se-main-container"}):
+        text = soup.find("div", attrs={"class":"se-main-container"}).get_text()
+        text = text.replace("\n","") #공백 제거
+        return text
+    return None
+
+
 if __name__ == "__main__":
     post_list = asyncio.run(
         request_post_list('파스타')
     )
+
     print(
         json.dumps(
             post_list,
@@ -53,4 +78,3 @@ if __name__ == "__main__":
             ensure_ascii=False
         )
     )
-    
