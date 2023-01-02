@@ -2,15 +2,15 @@ import json
 import asyncio
 import aiohttp
 from urllib import parse
-from utils import sanitize_html
+from scraping.fiddler.utils import sanitize_html
 from bs4 import BeautifulSoup as bs
 
 
-async def request_post_list(target_keyword: str=None) -> list:
+async def request_post_list(target_keyword: str=None, current_page: int=0) -> list:
 
     async def request_search_list(target_keyword: str=None) -> str:
         encoded_keyword = parse.quote(target_keyword)
-        url = f'https://section.blog.naver.com/ajax/SearchList.naver?countPerPage=7&currentPage=1&endDate=&keyword={encoded_keyword}&orderBy=sim&startDate=&type=post'
+        url = f'https://section.blog.naver.com/ajax/SearchList.naver?countPerPage=7&currentPage={current_page}&endDate=&keyword={encoded_keyword}&orderBy=sim&startDate=&type=post'
         headers = {
             "Host":"section.blog.naver.com",
             "Connection":"keep-alive",
@@ -66,7 +66,7 @@ async def request_post_content(url: str):
 
 if __name__ == "__main__":
     post_list = asyncio.run(
-        request_post_list('파스타')
+        request_post_list('파스타', 2)
     )
 
     print(

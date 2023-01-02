@@ -3,7 +3,7 @@ import requests
 import aiohttp
 import asyncio
 from urllib import parse
-from utils import sanitize_html
+from scraping.fiddler.utils import sanitize_html
 from html.parser import HTMLParser
 from typing import List, Tuple
 
