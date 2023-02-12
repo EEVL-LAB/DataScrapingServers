@@ -1,6 +1,16 @@
 import aiohttp
 import asyncio
 
+
+available_keys = [
+    'TITLE',
+    'SUB_TITLE',
+    'DATE',
+    'CONTENT',
+    'IMAGE_URL'
+]
+
+
 async def request_news_list():
     url = 'https://www.bigkinds.or.kr/news/subMainData.do?pageInfo=mainNews&login_chk=&LOGIN_SN=&LOGIN_NAME=&indexName=news&keyword=&byLine=&searchScope=1&searchFtr=3&startDate=2023-01-27&endDate=2023-01-28&sortMethod=date&contentLength=100&providerCode=&categoryCode=&incidentCode=&dateCode=&highlighting=false&sessionUSID=&sessionUUID=test&listMode=&categoryTab=&newsId=&delnewsId=&delquotationId=&delquotationtxt=&filterProviderCode=&filterCategoryCode=&filterIncidentCode=&filterDateCode=&filterAnalysisCode=&startNo=1&resultNumber=12&topmenuoff=&resultState=newsSubMain&keywordJson=&keywordFilterJson=&realKeyword=&keywordYn=Y&totalCount=&interval=&quotationKeyword1=&quotationKeyword2=&quotationKeyword3=&printingPage=&searchFromUseYN=N&searchFormName=&searchFormSaveSn=&mainTodayPersonYn=&period=&sectionDiv='
     headers = {
@@ -22,10 +32,18 @@ async def request_news_list():
             url=url,
         )
         response = await response.json()
-        print(response)
+        responses = response.get("resultSet").get('resultList')
+        result = list()
+        for response in responses:
+            r = dict()
+            for key in available_keys:
+                r[key] = response.get(key)
+            result.append(r)
+        return result
 
 
 if __name__ == "__main__":
-    asyncio.run(
+    result = asyncio.run(
         request_news_list()
     )
+    print(result)
