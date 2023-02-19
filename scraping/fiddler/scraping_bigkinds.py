@@ -11,8 +11,8 @@ available_keys = [
 ]
 
 
-async def request_news_list():
-    url = 'https://www.bigkinds.or.kr/news/subMainData.do?pageInfo=mainNews&login_chk=&LOGIN_SN=&LOGIN_NAME=&indexName=news&keyword=&byLine=&searchScope=1&searchFtr=3&startDate=2023-01-27&endDate=2023-01-28&sortMethod=date&contentLength=100&providerCode=&categoryCode=&incidentCode=&dateCode=&highlighting=false&sessionUSID=&sessionUUID=test&listMode=&categoryTab=&newsId=&delnewsId=&delquotationId=&delquotationtxt=&filterProviderCode=&filterCategoryCode=&filterIncidentCode=&filterDateCode=&filterAnalysisCode=&startNo=1&resultNumber=12&topmenuoff=&resultState=newsSubMain&keywordJson=&keywordFilterJson=&realKeyword=&keywordYn=Y&totalCount=&interval=&quotationKeyword1=&quotationKeyword2=&quotationKeyword3=&printingPage=&searchFromUseYN=N&searchFormName=&searchFormSaveSn=&mainTodayPersonYn=&period=&sectionDiv='
+async def request_news_list(start_date: str, end_date: str, limit: int):
+    url = f'https://www.bigkinds.or.kr/news/subMainData.do?pageInfo=mainNews&login_chk=&LOGIN_SN=&LOGIN_NAME=&indexName=news&keyword=&byLine=&searchScope=1&searchFtr=3&startDate={start_date}&endDate={end_date}&sortMethod=date&contentLength=100&providerCode=&categoryCode=&incidentCode=&dateCode=&highlighting=false&sessionUSID=&sessionUUID=test&listMode=&categoryTab=&newsId=&delnewsId=&delquotationId=&delquotationtxt=&filterProviderCode=&filterCategoryCode=&filterIncidentCode=&filterDateCode=&filterAnalysisCode=&startNo=1&resultNumber={limit}&topmenuoff=&resultState=newsSubMain&keywordJson=&keywordFilterJson=&realKeyword=&keywordYn=Y&totalCount=&interval=&quotationKeyword1=&quotationKeyword2=&quotationKeyword3=&printingPage=&searchFromUseYN=N&searchFormName=&searchFormSaveSn=&mainTodayPersonYn=&period=&sectionDiv='
     headers = {
             "Host": "www.bigkinds.or.kr",
             "Connection": "keep-alive",
@@ -43,7 +43,13 @@ async def request_news_list():
 
 
 if __name__ == "__main__":
-    result = asyncio.run(
-        request_news_list()
+    results = asyncio.run(
+        request_news_list(
+            start_date='2022-12-01',
+            end_date='2023-12-01',
+            limit=240
+        )
     )
-    print(result)
+    for result in results:
+        print(result, '\n')
+    print(len(results))

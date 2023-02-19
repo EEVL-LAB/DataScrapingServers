@@ -1,5 +1,4 @@
 import json
-import requests
 import aiohttp
 import asyncio
 from urllib import parse

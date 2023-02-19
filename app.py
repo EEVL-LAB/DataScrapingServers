@@ -2,13 +2,14 @@ from dto import *
 from fastapi import FastAPI
 from scraping.fiddler.scraping_naver_blog import request_post_list as naver_blog
 from scraping.fiddler.scraping_naver_news import request_news_list as naver_news
+from scraping.fiddler.scraping_bigkinds import request_news_list as bigkinds
 
 
 app = FastAPI()
 
 
 @app.post('/scarping_naver_blog')
-async def request_naver_blog(params: NaverBlogParams):
+async def request_naver_blog(params: NaverBlogRequestParams):
     posts = list()
 
     async def extend_posts(current_page: int):
@@ -30,3 +31,19 @@ async def request_naver_blog(params: NaverBlogParams):
             current_page += 1
         except:
             return posts
+
+
+@app.post('/scraping_naver_news')
+async def request_naver_news(params: NaverNewsResponseParams):
+    return await naver_news(
+        target_keyword=params.target_keyword
+    )
+
+
+@app.post('/scraping_bigkinds')
+async def request_bigkinds(params: BigkindsRequestParams):
+    return await bigkinds(
+        start_date=params.start_date,
+        end_date=params.end_date,
+        limit=params.limit
+    )
