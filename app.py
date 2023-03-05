@@ -8,7 +8,7 @@ from scraping.fiddler.scraping_bigkinds import request_news_list as bigkinds
 app = FastAPI()
 
 
-@app.post('/scarping_naver_blog')
+@app.post('/scarping_naver_blog', response_model=List[NaverBlogResponse])
 async def request_naver_blog(params: NaverBlogRequestParams):
     posts = list()
 
@@ -33,14 +33,14 @@ async def request_naver_blog(params: NaverBlogRequestParams):
             return posts
 
 
-@app.post('/scraping_naver_news')
+@app.post('/scraping_naver_news', response_model=List[NaverNewsResponse])
 async def request_naver_news(params: NaverNewsResponseParams):
     return await naver_news(
         target_keyword=params.target_keyword
     )
 
 
-@app.post('/scraping_bigkinds')
+@app.post('/scraping_bigkinds', response_model=List[BigkindsResponse])
 async def request_bigkinds(params: BigkindsRequestParams):
     return await bigkinds(
         start_date=params.start_date,

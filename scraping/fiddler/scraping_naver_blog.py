@@ -36,8 +36,8 @@ async def request_post_list(target_keyword: str=None, current_page: int=0) -> li
                 'url': search_result.get('postUrl'),
                 'title': search_result.get('noTagTitle', sanitize_html(search_result.get('title'))),
                 'contents': sanitize_html(search_result.get('contents')),
-                'thumbnails': search_result.get('thumbnails'),
-                'content_plain_text': await request_post_content(search_result.get('postUrl'))
+                'content_plain_text': await request_post_content(search_result.get('postUrl')),
+                'thumbnails': [thumbnail.get('url') for thumbnail in search_result.get('thumbnails')],
             }
         )
 
@@ -62,17 +62,3 @@ async def request_post_content(url: str):
         text = text.replace("\n","") #공백 제거
         return text
     return None
-
-
-if __name__ == "__main__":
-    post_list = asyncio.run(
-        request_post_list('파스타', 2)
-    )
-
-    print(
-        json.dumps(
-            post_list,
-            indent=4,
-            ensure_ascii=False
-        )
-    )

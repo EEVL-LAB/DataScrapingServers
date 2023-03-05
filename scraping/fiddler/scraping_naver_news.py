@@ -29,6 +29,9 @@ class NewsHTMLParser(HTMLParser):
                 {
                     'url': attr_dict.get('href'),
                     'title': attr_dict.get('title'),
+                    'contents': '',
+                    'content_plain_text': '',
+                    'thumbnails': []
                 }
             )
             self.is_news = True
@@ -60,16 +63,4 @@ async def request_news_list(target_keyword: str=None) -> list:
     parser = NewsHTMLParser()
     parser.feed(response_string)
     return parser.news_list
-
-if __name__ == "__main__":
-    news_list = asyncio.run(
-        request_news_list('윤석열')
-    )
-    print(
-        json.dumps(
-            news_list,
-            indent=4,
-            ensure_ascii=False
-        )    
-    )
     

@@ -4,7 +4,6 @@ import asyncio
 
 available_keys = [
     'TITLE',
-    'SUB_TITLE',
     'DATE',
     'CONTENT',
     'IMAGE_URL'
@@ -35,21 +34,13 @@ async def request_news_list(start_date: str, end_date: str, limit: int):
         responses = response.get("resultSet").get('resultList')
         result = list()
         for response in responses:
-            r = dict()
-            for key in available_keys:
-                r[key] = response.get(key)
-            result.append(r)
+            result.append(
+                {
+                    'url': '',
+                    'title': response.get('TITLE'),
+                    'contents': response.get('CONTENT'),
+                    'content_plain_text': response.get('CONTENT').replace('\n', ' '),
+                    'thumbnails': [response.get('IMAGE_URL')],
+                }
+            )
         return result
-
-
-if __name__ == "__main__":
-    results = asyncio.run(
-        request_news_list(
-            start_date='2022-12-01',
-            end_date='2023-12-01',
-            limit=240
-        )
-    )
-    for result in results:
-        print(result, '\n')
-    print(len(results))
