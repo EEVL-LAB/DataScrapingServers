@@ -1,6 +1,8 @@
 import os
-from typing import Any
+from dto import *
+from typing import Any, Union
 from kafka import KafkaProducer
+
 
 producer = KafkaProducer(
     acks=0,

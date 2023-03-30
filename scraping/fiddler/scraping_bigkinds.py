@@ -1,5 +1,5 @@
 import aiohttp
-import asyncio
+from kafka_producer import *
 
 
 available_keys = [
@@ -10,8 +10,8 @@ available_keys = [
 ]
 
 
-async def request_news_list(start_date: str, end_date: str, limit: int):
-    url = f'https://www.bigkinds.or.kr/news/subMainData.do?pageInfo=mainNews&login_chk=&LOGIN_SN=&LOGIN_NAME=&indexName=news&keyword=&byLine=&searchScope=1&searchFtr=3&startDate={start_date}&endDate={end_date}&sortMethod=date&contentLength=100&providerCode=&categoryCode=&incidentCode=&dateCode=&highlighting=false&sessionUSID=&sessionUUID=test&listMode=&categoryTab=&newsId=&delnewsId=&delquotationId=&delquotationtxt=&filterProviderCode=&filterCategoryCode=&filterIncidentCode=&filterDateCode=&filterAnalysisCode=&startNo=1&resultNumber={limit}&topmenuoff=&resultState=newsSubMain&keywordJson=&keywordFilterJson=&realKeyword=&keywordYn=Y&totalCount=&interval=&quotationKeyword1=&quotationKeyword2=&quotationKeyword3=&printingPage=&searchFromUseYN=N&searchFormName=&searchFormSaveSn=&mainTodayPersonYn=&period=&sectionDiv='
+async def request_news_list(start_date: str, end_date: str, limit: int, target_keyword: str):
+    url = f'https://www.bigkinds.or.kr/news/subMainData.do?pageInfo=mainNews&login_chk=&LOGIN_SN=&LOGIN_NAME=&indexName=news&keyword={target_keyword}&byLine=&searchScope=1&searchFtr=3&startDate={start_date}&endDate={end_date}&sortMethod=date&contentLength=100&providerCode=&categoryCode=&incidentCode=&dateCode=&highlighting=false&sessionUSID=&sessionUUID=test&listMode=&categoryTab=&newsId=&delnewsId=&delquotationId=&delquotationtxt=&filterProviderCode=&filterCategoryCode=&filterIncidentCode=&filterDateCode=&filterAnalysisCode=&startNo=1&resultNumber={limit}&topmenuoff=&resultState=newsSubMain&keywordJson=&keywordFilterJson=&realKeyword=&keywordYn=Y&totalCount=&interval=&quotationKeyword1=&quotationKeyword2=&quotationKeyword3=&printingPage=&searchFromUseYN=N&searchFormName=&searchFormSaveSn=&mainTodayPersonYn=&period=&sectionDiv='
     headers = {
             "Host": "www.bigkinds.or.kr",
             "Connection": "keep-alive",
@@ -34,13 +34,15 @@ async def request_news_list(start_date: str, end_date: str, limit: int):
         responses = response.get("resultSet").get('resultList')
         result = list()
         for response in responses:
-            result.append(
-                {
-                    'url': '',
-                    'title': response.get('TITLE'),
-                    'contents': response.get('CONTENT'),
-                    'content_plain_text': response.get('CONTENT').replace('\n', ' '),
-                    'thumbnails': [response.get('IMAGE_URL')],
-                }
-            )
+            post = {
+                'url': '',
+                'title': response.get('TITLE'),
+                'contents': response.get('CONTENT'),
+                'content_plain_text': response.get('CONTENT').replace('\n', ' '),
+                'thumbnails': [response.get('IMAGE_URL')],
+                'target_keyword': target_keyword,
+                'channel_keyname': 'bigkinds'
+            }
+            await send('bigkinds', post)
+            result.append(post)
         return result

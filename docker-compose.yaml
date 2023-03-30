@@ -10,7 +10,11 @@ services:
     command:
       ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
     environment:
-      KAFKA_HOST: localhost
+      # KAFKA_HOST: a0cf6638ed1d24e16b0086f395e8bb90-1437709784.ap-northeast-2.elb.amazonaws.com
+      KAFKA_HOST: kafka.eevllab.studio
       KAFKA_PORT: 9092
+      REDIS_HOST: 1
+      REDIS_PORT: 1
+      REDIS_DB_NUM: 1
     volumes:
       - .:/app

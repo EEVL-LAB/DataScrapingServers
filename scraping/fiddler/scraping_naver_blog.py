@@ -1,9 +1,9 @@
 import json
-import asyncio
 import aiohttp
 from urllib import parse
 from scraping.fiddler.utils import sanitize_html
 from bs4 import BeautifulSoup as bs
+from kafka_producer import *
 
 
 async def request_post_list(target_keyword: str=None, current_page: int=0) -> list:
@@ -31,15 +31,17 @@ async def request_post_list(target_keyword: str=None, current_page: int=0) -> li
     search_results = response_dict.get('result').get('searchList')
     post_list = list()
     for search_result in search_results:
-        post_list.append(
-            {
-                'url': search_result.get('postUrl'),
-                'title': search_result.get('noTagTitle', sanitize_html(search_result.get('title'))),
-                'contents': sanitize_html(search_result.get('contents')),
-                'content_plain_text': await request_post_content(search_result.get('postUrl')),
-                'thumbnails': [thumbnail.get('url') for thumbnail in search_result.get('thumbnails')],
-            }
-        )
+        post = {
+                    'url': search_result.get('postUrl'),
+                    'title': search_result.get('noTagTitle', sanitize_html(search_result.get('title'))),
+                    'contents': sanitize_html(search_result.get('contents')),
+                    'content_plain_text': await request_post_content(search_result.get('postUrl')),
+                    'thumbnails': [thumbnail.get('url') for thumbnail in search_result.get('thumbnails')],
+                    'target_keyword': target_keyword,
+                    'channel_keyname': 'naver-blog'
+                }
+        await send('naver-blog', post)
+        post_list.append(post)
 
     return post_list
 

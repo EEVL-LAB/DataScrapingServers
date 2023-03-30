@@ -8,8 +8,9 @@ from typing import List, Tuple
 
 
 class NewsHTMLParser(HTMLParser):
-    def __init__(self, *, convert_charrefs: bool = ...) -> None:
+    def __init__(self, *, target_keyword: str, convert_charrefs: bool = ...) -> None:
         super().__init__(convert_charrefs=convert_charrefs)
+        self.target_keyword = target_keyword
         self.is_news = False
         self._news_list = list()
 
@@ -25,15 +26,16 @@ class NewsHTMLParser(HTMLParser):
         attr_class = attrs[1][1]
         if tag == 'a' and attr_class == 'news_tit':
             attr_dict = dict(attrs)
-            self._news_list.append(
-                {
+            post = {
                     'url': attr_dict.get('href'),
                     'title': attr_dict.get('title'),
                     'contents': '',
                     'content_plain_text': '',
-                    'thumbnails': []
-                }
-            )
+                    'thumbnails': [],
+                    'target_keyword': self.target_keyword,
+                    'channel_keyname': 'naver-news'
+            }
+            self._news_list.append(post)
             self.is_news = True
 
 
@@ -60,7 +62,7 @@ async def request_news_list(target_keyword: str=None) -> list:
             return response_string
 
     response_string = await request_search_list(target_keyword=target_keyword)
-    parser = NewsHTMLParser()
+    parser = NewsHTMLParser(target_keyword=target_keyword)
     parser.feed(response_string)
     return parser.news_list
     

@@ -45,5 +45,6 @@ async def request_bigkinds(params: BigkindsRequestParams):
     return await bigkinds(
         start_date=params.start_date,
         end_date=params.end_date,
-        limit=params.limit
+        limit=params.limit,
+        target_keyword=params.target_keyword
     )
