@@ -6,5 +6,5 @@ fastapi
 uvicorn[standard]
 beautifulsoup4
 lxml
-kafka-python
+aiokafka
 redis

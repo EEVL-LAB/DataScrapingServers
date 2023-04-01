@@ -10,9 +10,9 @@ services:
     command:
       ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
     environment:
-      # KAFKA_HOST: a0cf6638ed1d24e16b0086f395e8bb90-1437709784.ap-northeast-2.elb.amazonaws.com
-      KAFKA_HOST: kafka.eevllab.studio
-      KAFKA_PORT: 9092
+      KAFKA_BROKER_0: aaf468849f8a049cdad1e4fac615813d-779174101.ap-northeast-2.elb.amazonaws.com:9094
+      KAFKA_BROKER_1: a980ff85dfcf84c44a147a837f20d397-1149970735.ap-northeast-2.elb.amazonaws.com:9094
+      KAFKA_BROKER_2: a41af9ed8e742410f9f51d111e35040a-130931382.ap-northeast-2.elb.amazonaws.com:9094
       REDIS_HOST: 1
       REDIS_PORT: 1
       REDIS_DB_NUM: 1

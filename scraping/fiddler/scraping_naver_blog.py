@@ -30,6 +30,8 @@ async def request_post_list(target_keyword: str=None, current_page: int=0) -> li
     response_dict = json.loads(response_string)
     search_results = response_dict.get('result').get('searchList')
     post_list = list()
+    producer = await initialize_producer()
+    await producer.start()
     for search_result in search_results:
         post = {
                     'url': search_result.get('postUrl'),
@@ -40,9 +42,9 @@ async def request_post_list(target_keyword: str=None, current_page: int=0) -> li
                     'target_keyword': target_keyword,
                     'channel_keyname': 'naver-blog'
                 }
-        await send('naver-blog', post)
+        await send(producer, 'scraping', post)
         post_list.append(post)
-
+    await producer.stop()
     return post_list
 
 
