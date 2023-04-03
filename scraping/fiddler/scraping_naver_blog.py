@@ -6,11 +6,11 @@ from bs4 import BeautifulSoup as bs
 from kafka_producer import *
 
 
-async def request_post_list(target_keyword: str=None, current_page: int=0) -> list:
+async def request_post_list(target_keyword: str, start_date: str, end_date: str, current_page: int=0) -> list:
 
-    async def request_search_list(target_keyword: str=None) -> str:
+    async def request_search_list(target_keyword: str) -> str:
         encoded_keyword = parse.quote(target_keyword)
-        url = f'https://section.blog.naver.com/ajax/SearchList.naver?countPerPage=7&currentPage={current_page}&endDate=&keyword={encoded_keyword}&orderBy=sim&startDate=&type=post'
+        url = f'https://section.blog.naver.com/ajax/SearchList.naver?countPerPage=7&currentPage={current_page}&endDate={end_date}&keyword={encoded_keyword}&orderBy=sim&startDate={start_date}&type=post'
         headers = {
             "Host":"section.blog.naver.com",
             "Connection":"keep-alive",

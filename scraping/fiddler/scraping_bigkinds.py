@@ -10,7 +10,7 @@ available_keys = [
 ]
 
 
-async def request_news_list(start_date: str, end_date: str, limit: int, target_keyword: str):
+async def request_news_list(target_keyword: str, start_date: str, end_date: str, limit: int):
     url = f'https://www.bigkinds.or.kr/news/subMainData.do?pageInfo=mainNews&login_chk=&LOGIN_SN=&LOGIN_NAME=&indexName=news&keyword={target_keyword}&byLine=&searchScope=1&searchFtr=3&startDate={start_date}&endDate={end_date}&sortMethod=date&contentLength=100&providerCode=&categoryCode=&incidentCode=&dateCode=&highlighting=false&sessionUSID=&sessionUUID=test&listMode=&categoryTab=&newsId=&delnewsId=&delquotationId=&delquotationtxt=&filterProviderCode=&filterCategoryCode=&filterIncidentCode=&filterDateCode=&filterAnalysisCode=&startNo=1&resultNumber={limit}&topmenuoff=&resultState=newsSubMain&keywordJson=&keywordFilterJson=&realKeyword=&keywordYn=Y&totalCount=&interval=&quotationKeyword1=&quotationKeyword2=&quotationKeyword3=&printingPage=&searchFromUseYN=N&searchFormName=&searchFormSaveSn=&mainTodayPersonYn=&period=&sectionDiv='
     headers = {
             "Host": "www.bigkinds.or.kr",
@@ -33,6 +33,8 @@ async def request_news_list(start_date: str, end_date: str, limit: int, target_k
         response = await response.json()
         responses = response.get("resultSet").get('resultList')
         result = list()
+        producer = await initialize_producer()
+        await producer.start()
         for response in responses:
             post = {
                 'url': '',
@@ -43,6 +45,7 @@ async def request_news_list(start_date: str, end_date: str, limit: int, target_k
                 'target_keyword': target_keyword,
                 'channel_keyname': 'bigkinds'
             }
-            await send('bigkinds', post)
+            await send(producer, 'scraping', post)
             result.append(post)
+        await producer.stop()
         return result
