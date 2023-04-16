@@ -4,7 +4,7 @@ services:
   scraping:
     build:
       context: .
-    image: 705373246515.dkr.ecr.ap-northeast-2.amazonaws.com/scraping:0.0.3
+    image: 705373246515.dkr.ecr.ap-northeast-2.amazonaws.com/scraping:0.0.3-hotfix
     ports:
       - 8080:8080
     command:

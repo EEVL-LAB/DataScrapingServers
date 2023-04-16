@@ -8,7 +8,7 @@ from scraping.fiddler.scraping_bigkinds import request_news_list as bigkinds
 app = FastAPI()
 
 
-@app.post('/scarping_naver_blog', response_model=List[NaverBlogResponse])
+@app.post('/scraping_naver_blog', response_model=List[NaverBlogResponse])
 async def request_naver_blog(params: NaverBlogRequestParams):
     posts = list()
 
@@ -24,12 +24,14 @@ async def request_naver_blog(params: NaverBlogRequestParams):
     if params.page_limit is not None:
         for current_page in range(1, params.page_limit+1):
             await extend_posts(current_page=current_page)
+            print(f'[{current_page} page complete]')
         return posts
 
     current_page = 1
     while True:
         try:
-            extend_posts(current_page=current_page)
+            await extend_posts(current_page=current_page)
+            print(f'[{current_page} page complete]')
             current_page += 1
         except:
             return posts
