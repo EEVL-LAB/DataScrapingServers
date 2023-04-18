@@ -19,20 +19,6 @@ class NaverBlogResponse(BaseModel):
     channel_keyname: str
 
 
-# class NaverNewsResponseParams(BaseModel):
-#     target_keyword: str
-
-
-# class NaverNewsResponse(BaseModel):
-#     url: str
-#     title: str
-#     contents: str
-#     content_plain_text: str
-#     thumbnails: List[str]
-#     target_keyword: str
-#     channel_keyname: str
-
-
 class BigkindsRequestParams(BaseModel):
     target_keyword: str
     start_date: str = '2022-01-01'
@@ -48,3 +34,17 @@ class BigkindsResponse(BaseModel):
     thumbnails: List[str]
     target_keyword: str
     channel_keyname: str
+    
+    
+# class NaverNewsResponseParams(BaseModel):
+#     target_keyword: str
+
+
+# class NaverNewsResponse(BaseModel):
+#     url: str
+#     title: str
+#     contents: str
+#     content_plain_text: str
+#     thumbnails: List[str]
+#     target_keyword: str
+#     channel_keyname: str

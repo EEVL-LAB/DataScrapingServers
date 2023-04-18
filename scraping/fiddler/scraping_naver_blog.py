@@ -1,38 +1,92 @@
+import io
 import json
 import aiohttp
+import logging
 from urllib import parse
 from scraping.fiddler.utils import sanitize_html
 from bs4 import BeautifulSoup as bs
 from kafka_producer import *
+from aiokafka import AIOKafkaProducer
+from tqdm.asyncio import tqdm
 
 
-async def request_post_list(target_keyword: str, start_date: str, end_date: str, current_page: int=0) -> list:
+class TqdmToLogger(io.StringIO):
+    """
+    Output stream for TQDM which will output to logger module instead of the StdOut.
+    """
+    logger = None
+    level = None
+    buf = ''
+    def __init__(self,logger,level=None):
+        super(TqdmToLogger, self).__init__()
+        self.logger = logger
+        self.level = level or logging.INFO
+        
+    def write(self,buf):
+        self.buf = buf.strip('\r\n\t ')
+        
+    def flush(self):
+        self.logger.log(self.level, self.buf)
+        
+        
+logging.basicConfig(format='%(asctime)s [%(levelname)-8s] %(message)s')
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+tqdm_out = TqdmToLogger(logger,level=logging.INFO)
 
-    async def request_search_list(target_keyword: str) -> str:
-        encoded_keyword = parse.quote(target_keyword)
-        url = f'https://section.blog.naver.com/ajax/SearchList.naver?countPerPage=7&currentPage={current_page}&endDate={end_date}&keyword={encoded_keyword}&orderBy=sim&startDate={start_date}&type=post'
-        headers = {
-            "Host":"section.blog.naver.com",
-            "Connection":"keep-alive",
-            "Accept":"application/json, text/plain, */*",
-            "Referer":f'https://section.blog.naver.com/Search/Post.naver?pageNo=1&rangeType=ALL&orderBy=sim&keyword={encoded_keyword}',
-        }
-        async with aiohttp.ClientSession() as session:
-            response = await session.get(
-                url=url,
-                headers=headers
-            )
-            response_string = await response.text()
-            return response_string
 
-    response_string = await request_search_list(target_keyword=target_keyword)
+async def request_search_list(
+        target_keyword: str,
+        start_date: str, 
+        end_date: str, 
+        current_page: int
+    ) -> str:
+    encoded_keyword = parse.quote(target_keyword)
+    url = f'https://section.blog.naver.com/ajax/SearchList.naver?countPerPage=7&currentPage={current_page}&endDate={end_date}&keyword={encoded_keyword}&orderBy=sim&startDate={start_date}&type=post'
+    headers = {
+        "Host":"section.blog.naver.com",
+        "Connection":"keep-alive",
+        "Accept":"application/json, text/plain, */*",
+        "Referer":f'https://section.blog.naver.com/Search/Post.naver?pageNo=1&rangeType=ALL&orderBy=sim&keyword={encoded_keyword}',
+    }
+    async with aiohttp.ClientSession() as session:
+        response = await session.get(
+            url=url,
+            headers=headers
+        )
+        response_string = await response.text()
+        return response_string
+    
+
+async def extract_information_from_search_results(
+    target_keyword: str, 
+    start_date: str, 
+    end_date: str, 
+    current_page: int
+):
+    response_string = await request_search_list(
+        target_keyword=target_keyword,
+        start_date=start_date,
+        end_date=end_date,
+        current_page=current_page
+    )
     response_string = response_string.split('\n')[1]
     response_dict = json.loads(response_string)
+    total_count = response_dict.get('result').get('totalCount')
     search_results = response_dict.get('result').get('searchList')
+    return total_count, search_results
+
+
+async def request_post_list(producer: AIOKafkaProducer, target_keyword: str, start_date: str, end_date: str, current_page: int=0) -> list:
+    total_count, search_results = await extract_information_from_search_results(
+        target_keyword=target_keyword,
+        start_date=start_date,
+        end_date=end_date,
+        current_page=current_page
+    )
     post_list = list()
-    producer = await initialize_producer()
-    await producer.start()
-    for search_result in search_results:
+    pbar = tqdm(search_results, file=tqdm_out)
+    for search_result in pbar:
         post = {
                     'url': search_result.get('postUrl'),
                     'title': search_result.get('noTagTitle', sanitize_html(search_result.get('title'))),
@@ -44,7 +98,7 @@ async def request_post_list(target_keyword: str, start_date: str, end_date: str,
                 }
         await send(producer, 'scraping', post)
         post_list.append(post)
-    await producer.stop()
+        pbar.set_postfix(page=current_page)
     return post_list
 
 
@@ -65,4 +119,4 @@ async def request_post_content(url: str):
         text = soup.find("div", attrs={"class":"se-main-container"}).get_text()
         text = text.replace("\n","") #공백 제거
         return text
-    return None
+    return 'None'
