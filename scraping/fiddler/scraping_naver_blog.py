@@ -89,8 +89,8 @@ async def request_post_list(producer: AIOKafkaProducer, target_keyword: str, sta
     for search_result in pbar:
         post = {
                     'url': search_result.get('postUrl'),
-                    'title': search_result.get('noTagTitle', sanitize_html(search_result.get('title'))),
-                    'contents': sanitize_html(search_result.get('contents')),
+                    'title': search_result.get('noTagTitle', await sanitize_html(search_result.get('title'))),
+                    'contents': await sanitize_html(search_result.get('contents')),
                     'content_plain_text': await request_post_content(search_result.get('postUrl')),
                     'thumbnails': [thumbnail.get('url') for thumbnail in search_result.get('thumbnails')],
                     'target_keyword': target_keyword,
@@ -98,7 +98,7 @@ async def request_post_list(producer: AIOKafkaProducer, target_keyword: str, sta
                 }
         await send(producer, 'scraping', post)
         post_list.append(post)
-        pbar.set_postfix(page=current_page)
+        pbar.set_postfix(target_keyword=target_keyword, page=current_page)
     return post_list
 
 

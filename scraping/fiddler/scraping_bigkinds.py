@@ -37,7 +37,7 @@ async def request_news_list(target_keyword: str, start_date: str, end_date: str,
         await producer.start()
         for response in responses:
             post = {
-                'url': '',
+                'url': response.get('PROVIDER_LINK_PAGE'),
                 'title': response.get('TITLE'),
                 'contents': response.get('CONTENT'),
                 'content_plain_text': response.get('CONTENT').replace('\n', ' '),
