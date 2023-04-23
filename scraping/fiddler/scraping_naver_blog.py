@@ -109,8 +109,6 @@ async def request_post_content(url: str):
         soup = bs(response_string, "html.parser")
         frame = soup.find('iframe', id='mainFrame')
         frame_addr = 'https://blog.naver.com/' + frame['src']
-
-    async with aiohttp.ClientSession() as session:
         response = await session.get(frame_addr)
         response_string = await response.text()
         soup = bs(response_string, "lxml") 

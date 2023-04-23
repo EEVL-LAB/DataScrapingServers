@@ -1,5 +1,33 @@
+import io
+import logging
 import aiohttp
+from tqdm import tqdm
 from kafka_producer import *
+
+
+class TqdmToLogger(io.StringIO):
+    """
+    Output stream for TQDM which will output to logger module instead of the StdOut.
+    """
+    logger = None
+    level = None
+    buf = ''
+    def __init__(self,logger,level=None):
+        super(TqdmToLogger, self).__init__()
+        self.logger = logger
+        self.level = level or logging.INFO
+        
+    def write(self,buf):
+        self.buf = buf.strip('\r\n\t ')
+        
+    def flush(self):
+        self.logger.log(self.level, self.buf)
+        
+        
+logging.basicConfig(format='%(asctime)s [%(levelname)-8s] %(message)s')
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+tqdm_out = TqdmToLogger(logger,level=logging.INFO)
 
 
 available_keys = [
@@ -35,7 +63,8 @@ async def request_news_list(target_keyword: str, start_date: str, end_date: str,
         result = list()
         producer = await initialize_producer()
         await producer.start()
-        for response in responses:
+        pbar = tqdm(responses, file=tqdm_out)
+        for response in pbar:
             post = {
                 'url': response.get('PROVIDER_LINK_PAGE'),
                 'title': response.get('TITLE'),
@@ -47,5 +76,6 @@ async def request_news_list(target_keyword: str, start_date: str, end_date: str,
             }
             await send(producer, 'scraping', post)
             result.append(post)
+            pbar.set_postfix(target_keyword=target_keyword)
         await producer.stop()
         return result
