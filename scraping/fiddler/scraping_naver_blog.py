@@ -2,6 +2,7 @@ import io
 import json
 import aiohttp
 import logging
+import zlib
 from urllib import parse
 from scraping.fiddler.utils import sanitize_html
 from bs4 import BeautifulSoup as bs
@@ -77,6 +78,11 @@ async def extract_information_from_search_results(
     return total_count, search_results
 
 
+async def extract_crc_from_string(string: str) -> int:
+    bytes_string = bytes(string, encoding='utf8')
+    return zlib.crc32(bytes_string)
+
+
 async def request_post_list(producer: AIOKafkaProducer, target_keyword: str, start_date: str, end_date: str, current_page: int=0) -> list:
     total_count, search_results = await extract_information_from_search_results(
         target_keyword=target_keyword,
@@ -87,14 +93,16 @@ async def request_post_list(producer: AIOKafkaProducer, target_keyword: str, sta
     post_list = list()
     pbar = tqdm(search_results, file=tqdm_out)
     for search_result in pbar:
+        content_plain_text = await request_post_content(search_result.get('postUrl'))
         post = {
                     'url': search_result.get('postUrl'),
                     'title': search_result.get('noTagTitle', await sanitize_html(search_result.get('title'))),
                     'contents': await sanitize_html(search_result.get('contents')),
-                    'content_plain_text': await request_post_content(search_result.get('postUrl')),
+                    'content_plain_text': content_plain_text,
                     'thumbnails': [thumbnail.get('url') for thumbnail in search_result.get('thumbnails')],
                     'target_keyword': target_keyword,
-                    'channel_keyname': 'naver-blog'
+                    'channel_keyname': 'naver-blog',
+                    'crc': await extract_crc_from_string(content_plain_text)
                 }
         await send(producer, 'scraping', post)
         post_list.append(post)

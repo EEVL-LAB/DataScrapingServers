@@ -1,4 +1,5 @@
 import io
+import zlib
 import logging
 import aiohttp
 from tqdm import tqdm
@@ -38,6 +39,11 @@ available_keys = [
 ]
 
 
+async def extract_crc_from_string(string: str) -> int:
+    bytes_string = bytes(string, encoding='utf8')
+    return zlib.crc32(bytes_string)
+
+
 async def request_news_list(target_keyword: str, start_date: str, end_date: str, limit: int):
     url = f'https://www.bigkinds.or.kr/news/subMainData.do?pageInfo=mainNews&login_chk=&LOGIN_SN=&LOGIN_NAME=&indexName=news&keyword={target_keyword}&byLine=&searchScope=1&searchFtr=3&startDate={start_date}&endDate={end_date}&sortMethod=date&contentLength=100&providerCode=&categoryCode=&incidentCode=&dateCode=&highlighting=false&sessionUSID=&sessionUUID=test&listMode=&categoryTab=&newsId=&delnewsId=&delquotationId=&delquotationtxt=&filterProviderCode=&filterCategoryCode=&filterIncidentCode=&filterDateCode=&filterAnalysisCode=&startNo=1&resultNumber={limit}&topmenuoff=&resultState=newsSubMain&keywordJson=&keywordFilterJson=&realKeyword=&keywordYn=Y&totalCount=&interval=&quotationKeyword1=&quotationKeyword2=&quotationKeyword3=&printingPage=&searchFromUseYN=N&searchFormName=&searchFormSaveSn=&mainTodayPersonYn=&period=&sectionDiv='
     headers = {
@@ -65,14 +71,16 @@ async def request_news_list(target_keyword: str, start_date: str, end_date: str,
         await producer.start()
         pbar = tqdm(responses, file=tqdm_out)
         for response in pbar:
+            content_plain_text = response.get('CONTENT').replace('\n', ' ')
             post = {
                 'url': response.get('PROVIDER_LINK_PAGE'),
                 'title': response.get('TITLE'),
                 'contents': response.get('CONTENT'),
-                'content_plain_text': response.get('CONTENT').replace('\n', ' '),
+                'content_plain_text': content_plain_text,
                 'thumbnails': [response.get('IMAGE_URL')],
                 'target_keyword': target_keyword,
-                'channel_keyname': 'bigkinds'
+                'channel_keyname': 'bigkinds',
+                'crc': await extract_crc_from_string(content_plain_text)
             }
             await send(producer, 'scraping', post)
             result.append(post)
