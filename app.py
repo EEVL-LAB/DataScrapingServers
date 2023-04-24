@@ -1,16 +1,14 @@
 from dto import *
-from fastapi import FastAPI
+from fastapi import FastAPI, BackgroundTasks
 from kafka_producer import *
 from scraping.fiddler.scraping_naver_blog import extract_information_from_search_results
 from scraping.fiddler.scraping_naver_blog import request_post_list as naver_blog
 from scraping.fiddler.scraping_bigkinds import request_news_list as bigkinds
-# from scraping.fiddler.scraping_naver_news import request_news_list as naver_news
 
 app = FastAPI()
 
 
-@app.post('/scraping_naver_blog', response_model=List[NaverBlogResponse])
-async def request_naver_blog(params: NaverBlogRequestParams):
+async def scraping_naver_blog(params: NaverBlogRequestParams):
     posts = list()
     producer = await initialize_producer()
     await producer.start()
@@ -44,9 +42,15 @@ async def request_naver_blog(params: NaverBlogRequestParams):
     return posts
 
 
-@app.post('/scraping_bigkinds', response_model=List[BigkindsResponse])
-async def request_bigkinds(params: BigkindsRequestParams):
-    return await bigkinds(
+@app.post('/scraping_naver_blog')
+async def request_naver_blog(params: NaverBlogRequestParams, background_tasks: BackgroundTasks):
+    background_tasks.add_task(
+        scraping_naver_blog, params
+    )
+    
+    
+async def scraping_bigkinds(params: BigkindsRequestParams):
+    await bigkinds(
         target_keyword=params.target_keyword,
         start_date=params.start_date,
         end_date=params.end_date,
@@ -54,8 +58,8 @@ async def request_bigkinds(params: BigkindsRequestParams):
     )
 
 
-# @app.post('/scraping_naver_news', response_model=List[NaverNewsResponse])
-# async def request_naver_news(params: NaverNewsResponseParams):
-#     return await naver_news(
-#         target_keyword=params.target_keyword
-#     )
+@app.post('/scraping_bigkinds')
+async def request_bigkinds(params: BigkindsRequestParams, background_tasks: BackgroundTasks):
+    background_tasks.add_task(
+        scraping_bigkinds, params
+    )
