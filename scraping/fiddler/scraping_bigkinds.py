@@ -71,9 +71,11 @@ async def request_news_list(target_keyword: str, start_date: str, end_date: str,
         await producer.start()
         pbar = tqdm(responses, file=tqdm_out)
         for response in pbar:
+            date = response.get('DATE')
             content_plain_text = response.get('CONTENT').replace('\n', ' ')
             post = {
                 'url': response.get('PROVIDER_LINK_PAGE'),
+                'date': f'{date[:4]}-{date[4:6]}-{date[6:]}',
                 'title': response.get('TITLE'),
                 'contents': response.get('CONTENT'),
                 'content_plain_text': content_plain_text,

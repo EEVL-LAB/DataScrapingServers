@@ -48,7 +48,7 @@ async def request_naver_blog(params: NaverBlogRequestParams, background_tasks: B
         scraping_naver_blog, params
     )
     
-    
+
 async def scraping_bigkinds(params: BigkindsRequestParams):
     await bigkinds(
         target_keyword=params.target_keyword,

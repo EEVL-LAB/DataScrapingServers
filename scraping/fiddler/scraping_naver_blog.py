@@ -93,9 +93,11 @@ async def request_post_list(producer: AIOKafkaProducer, target_keyword: str, sta
     post_list = list()
     pbar = tqdm(search_results, file=tqdm_out)
     for search_result in pbar:
-        content_plain_text = await request_post_content(search_result.get('postUrl'))
+        date, content_plain_text = await request_post_content(search_result.get('postUrl'))
+        date = start_date if date == 'None' else date
         post = {
                     'url': search_result.get('postUrl'),
+                    'date': date,
                     'title': search_result.get('noTagTitle', await sanitize_html(search_result.get('title'))),
                     'contents': await sanitize_html(search_result.get('contents')),
                     'content_plain_text': content_plain_text,
@@ -119,10 +121,17 @@ async def request_post_content(url: str):
         frame_addr = 'https://blog.naver.com/' + frame['src']
         response = await session.get(frame_addr)
         response_string = await response.text()
-        soup = bs(response_string, "lxml") 
+        soup = bs(response_string, "lxml")
+    
+    date, text = 'None', 'None'
+    
+    if soup.find("span", attrs={"class":"se_publishDate pcol2"}):
+        date = soup.find("span", attrs={"class":"se_publishDate pcol2"}).get_text()
+        date = date.split('. ')
+        date = f'{date[0]}-{date[1]}-{date[2]}'
 
     if soup.find("div", attrs={"class":"se-main-container"}):
         text = soup.find("div", attrs={"class":"se-main-container"}).get_text()
         text = text.replace("\n","") #공백 제거
-        return text
-    return 'None'
+
+    return date, text
