@@ -8,6 +8,11 @@ from scraping.fiddler.scraping_bigkinds import request_news_list as bigkinds
 app = FastAPI()
 
 
+@app.get("/")
+async def healthy_check():
+    return "healthy"
+
+
 async def scraping_naver_blog(params: NaverBlogRequestParams):
     posts = list()
     producer = await initialize_producer()
