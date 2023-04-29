@@ -86,6 +86,6 @@ async def request_news_list(target_keyword: str, start_date: str, end_date: str,
             }
             await send(producer, 'scraping', post)
             result.append(post)
-            pbar.set_postfix(target_keyword=target_keyword)
+            pbar.set_postfix(channel='bigkinds', target_keyword=target_keyword)
         await producer.stop()
         return result

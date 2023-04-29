@@ -108,7 +108,7 @@ async def request_post_list(producer: AIOKafkaProducer, target_keyword: str, sta
                 }
         await send(producer, 'scraping', post)
         post_list.append(post)
-        pbar.set_postfix(target_keyword=target_keyword, page=current_page)
+        pbar.set_postfix(channel='naver-blog', target_keyword=target_keyword, page=current_page)
     return post_list
 
 
