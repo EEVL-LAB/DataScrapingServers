@@ -134,14 +134,18 @@ async def request_post_content(url: str):
     
     if soup.find("span", attrs={"class":"se_publishDate pcol2"}):
         date = soup.find("span", attrs={"class":"se_publishDate pcol2"}).get_text()
-        date = list(map(int, date.split('. ')[:3]))
+        date = date.split('. ')
         if len(date) >= 3:
             # ['2023', '1', '1', '16:52'] -> '2023-01-01'
+            date = list(map(int, date[:3]))
             date = datetime.datetime(
                 year=date[0],
                 month=date[1],
                 day=date[2]
             ).strftime('%Y-%m-%d')
+        else:
+            # '10시간 전' -> 'None' -> start_date
+            date = 'None'
 
     if soup.find("div", attrs={"class":"se-main-container"}):
         text = soup.find("div", attrs={"class":"se-main-container"}).get_text()
