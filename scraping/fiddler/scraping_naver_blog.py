@@ -115,7 +115,7 @@ async def request_post_list(
                 }
         await send(producer, 'scraping', post)
         post_list.append(post)
-        pbar.set_postfix(channel='naver-blog', target_keyword=target_keyword, page=current_page)
+        pbar.set_postfix(channel='naver-blog', target_keyword=target_keyword, page=current_page, date=date)
     return post_list
 
 
