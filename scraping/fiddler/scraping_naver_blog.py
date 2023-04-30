@@ -3,6 +3,7 @@ import json
 import aiohttp
 import logging
 import zlib
+import datetime
 from urllib import parse
 from scraping.fiddler.utils import sanitize_html
 from bs4 import BeautifulSoup as bs
@@ -83,7 +84,13 @@ async def extract_crc_from_string(string: str) -> int:
     return zlib.crc32(bytes_string)
 
 
-async def request_post_list(producer: AIOKafkaProducer, target_keyword: str, start_date: str, end_date: str, current_page: int=0) -> list:
+async def request_post_list(
+        target_keyword: str, 
+        start_date: str, 
+        end_date: str, 
+        current_page: int=0,
+        producer: AIOKafkaProducer=None
+    ) -> list:
     total_count, search_results = await extract_information_from_search_results(
         target_keyword=target_keyword,
         start_date=start_date,
@@ -127,8 +134,14 @@ async def request_post_content(url: str):
     
     if soup.find("span", attrs={"class":"se_publishDate pcol2"}):
         date = soup.find("span", attrs={"class":"se_publishDate pcol2"}).get_text()
-        date = date.split('. ')
-        date = f'{date[0]}-{date[1]}-{date[2]}'
+        date = list(map(int, date.split('. ')[:3]))
+        if len(date) >= 3:
+            # ['2023', '1', '1', '16:52'] -> '2023-01-01'
+            date = datetime.datetime(
+                year=date[0],
+                month=date[1],
+                day=date[2]
+            ).strftime('%Y-%m-%d')
 
     if soup.find("div", attrs={"class":"se-main-container"}):
         text = soup.find("div", attrs={"class":"se-main-container"}).get_text()
